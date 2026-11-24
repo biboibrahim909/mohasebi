@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>محاسبي | محاسبك الشخصي بالذكاء الاصطناعي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1220; --card:#131c30; --card2:#182238; --line:#233252;
+  --txt:#e8eefb; --mut:#8ba0c6; --acc:#4f8cff; --green:#2fd27d; --red:#ff6b6b; --gold:#ffc24b;
+  --rad:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'Cairo',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:86px}
+header.top{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--acc),#7b5cff);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff}
+header.top h1{font-size:18px;font-weight:800}
+header.top .sub{font-size:11px;color:var(--mut);font-weight:600}
+main{max-width:640px;margin:0 auto;padding:16px}
+.page{display:none;animation:fade .25s ease}
+.page.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Dashboard cards */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:14px 16px}
+.card .lbl{font-size:12px;color:var(--mut);font-weight:700;margin-bottom:4px}
+.card .val{font-size:22px;font-weight:900}
+.card .val small{font-size:12px;color:var(--mut);font-weight:700}
+.card.full{grid-column:1/-1;background:linear-gradient(135deg,#16264a,#131c30)}
+.val.green{color:var(--green)} .val.red{color:var(--red)} .val.gold{color:var(--gold)}
+
+/* Quick entry hint */
+.hint{background:var(--card2);border:1px dashed var(--line);border-radius:var(--rad);padding:10px 14px;font-size:12.5px;color:var(--mut);margin-bottom:14px;line-height:1.8}
+.hint b{color:var(--txt)}
+
+/* Chat */
+#chatBox{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.msg{max-width:88%;padding:10px 14px;border-radius:16px;font-size:14.5px;line-height:1.7;font-weight:600}
+.msg.user{align-self:flex-start;background:var(--acc);color:#fff;border-bottom-left-radius:4px}
+.msg.bot{align-self:flex-end;background:var(--card);border:1px solid var(--line);border-bottom-right-radius:4px}
+.msg.bot .mini{font-size:11.5px;color:var(--mut);margin-top:4px}
+.confirmRow{display:flex;gap:8px;margin-top:8px}
+.btn{border:none;border-radius:10px;padding:8px 16px;font-family:inherit;font-weight:800;font-size:13px;cursor:pointer}
+.btn.ok{background:var(--green);color:#062b18}
+.btn.no{background:#2a3552;color:var(--txt)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--mut)}
+.inputBar{position:fixed;bottom:66px;left:0;right:0;background:rgba(11,18,32,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:10px 14px;display:none;z-index:40}
+.inputBar.show{display:flex;gap:8px;max-width:640px;margin:0 auto}
+.inputBar input{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 14px;color:var(--txt);font-family:inherit;font-size:14px;font-weight:600;outline:none}
+.inputBar input:focus{border-color:var(--acc)}
+.inputBar button{background:var(--acc);color:#fff;border:none;border-radius:12px;padding:0 18px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer}
+
+/* Transactions */
+.tx{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:9px}
+.tx .ic{width:40px;height:40px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.tx .info{flex:1;min-width:0}
+.tx .t1{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .t2{font-size:11.5px;color:var(--mut);font-weight:600}
+.tx .amt{font-weight:900;font-size:15px;white-space:nowrap}
+.tx .amt.in{color:var(--green)} .tx .amt.out{color:var(--red)}
+.tx .del{background:none;border:none;color:var(--mut);font-size:16px;cursor:pointer;padding:4px}
+.filters{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:800;color:var(--mut);cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.empty{text-align:center;color:var(--mut);font-size:13px;padding:30px 0;font-weight:700}
+
+/* People */
+.person{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:9px}
+.person .av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#7b5cff,var(--acc));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;color:#fff;flex-shrink:0}
+.person .info{flex:1}
+.person .t1{font-size:14.5px;font-weight:800}
+.person .t2{font-size:11.5px;color:var(--mut);font-weight:600}
+
+/* Settings */
+.set{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:16px;margin-bottom:12px}
+.set h3{font-size:14.5px;font-weight:800;margin-bottom:6px}
+.set p{font-size:12.5px;color:var(--mut);line-height:1.8;margin-bottom:10px;font-weight:600}
+.set input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--txt);font-family:inherit;font-size:13px;outline:none;direction:ltr;text-align:left}
+.set a{color:var(--acc)}
+.rowBtns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Bottom nav */
+nav.bottom{position:fixed;bottom:0;left:0;right:0;background:rgba(15,23,42,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;z-index:60;height:62px}
+nav.bottom button{flex:1;background:none;border:none;color:var(--mut);font-family:inherit;font-size:11px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
+nav.bottom button .em{font-size:19px}
+nav.bottom button.on{color:var(--acc)}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--green);color:#062b18;font-weight:800;font-size:13px;padding:9px 18px;border-radius:999px;z-index:99;opacity:0;transition:opacity .3s;pointer-events:none}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo">م</div>
+  <div><h1>محاسبي</h1><div class="sub">محاسبك الشخصي بالذكاء الاصطناعي</div></div>
+</header>
+
+<main>
+  <!-- Dashboard -->
+  <section class="page active" id="pg-home">
+    <div class="cards">
+      <div class="card full"><div class="lbl">الرصيد الحالي</div><div class="val" id="d-balance">0 <small>جنيه</small></div></div>
+      <div class="card"><div class="lbl">دخل الشهر</div><div class="val green" id="d-in">0</div></div>
+      <div class="card"><div class="lbl">مصروف الشهر</div><div class="val red" id="d-out">0</div></div>
+      <div class="card"><div class="lbl">سلف لي (هترجع)</div><div class="val gold" id="d-lent">0</div></div>
+      <div class="card"><div class="lbl">سلف علي (لازم أرد)</div><div class="val red" id="d-borrowed">0</div></div>
+    </div>
+    <div class="hint">اكتب في المحادثة زي ما بتتكلم: <b>«صرفت 50 مواصلات»</b> · <b>«قبضت 3000 مرتب»</b> · <b>«سلفت أحمد 200»</b> · <b>«أحمد رجعلي 100»</b></div>
+    <div id="recentList"></div>
+  </section>
+
+  <!-- Chat -->
+  <section class="page" id="pg-chat">
+    <div id="chatBox"></div>
+  </section>
+
+  <!-- Transactions -->
+  <section class="page" id="pg-tx">
+    <div class="filters" id="txFilters">
+      <div class="chip on" data-f="all">الكل</div>
+      <div class="chip" data-f="expense">مصاريف</div>
+      <div class="chip" data-f="income">دخل</div>
+      <div class="chip" data-f="lent">سلف لي</div>
+      <div class="chip" data-f="borrowed">سلف علي</div>
+    </div>
+    <div id="txList"></div>
+  </section>
+
+  <!-- People -->
+  <section class="page" id="pg-people">
+    <div id="peopleList"></div>
+  </section>
+
+  <!-- Settings -->
+  <section class="page" id="pg-set">
+    <div class="set">
+      <h3>مفتاح Gemini (اختياري)</h3>
+      <p>من غير مفتاح البرنامج بيفهم الجمل المعتادة تلقائيًا. لو حطيت مفتاح Gemini المجاني، هيفهم أي صياغة ويرد على أسئلة حرة. هاته من <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — بيتحفظ على موبايلك بس.</p>
+      <div class="rowBtns" style="margin-bottom:8px">
+        <input id="gemKey" type="password" placeholder="AIza...">
+      </div>
+      <div class="rowBtns">
+        <button class="btn ok" onclick="saveKey()">حفظ المفتاح</button>
+        <button class="btn no" onclick="clearKey()">مسح</button>
+      </div>
+    </div>
+    <div class="set">
+      <h3>النسخ الاحتياطي</h3>
+      <p>كل بياناتك متسجلة على موبايلك. صدّرها ملف Excel/CSV في أي وقت، أو امسحها وابدأ من جديد.</p>
+      <div class="rowBtns">
+        <button class="btn ok" onclick="exportCSV()">تصدير CSV</button>
+        <button class="btn no" onclick="wipeAll()">مسح كل البيانات</button>
+      </div>
+    </div>
+    <div class="set">
+      <h3>إضافة للشاشة الرئيسية</h3>
+      <p>من متصفح كروم على الموبايل: قائمة ⋮ ثم «إضافة إلى الشاشة الرئيسية» عشان يفتح زي أي تطبيق.</p>
+    </div>
+  </section>
+</main>
+
+<div class="inputBar" id="inputBar">
+  <input id="chatIn" placeholder="اكتب معاملة أو اسأل…" autocomplete="off" enterkeyhint="send">
+  <button onclick="sendChat()">إرسال</button>
+</div>
+
+<nav class="bottom">
+  <button class="on" data-pg="pg-home" onclick="go('pg-home',this)"><span class="em">📊</span>الرئيسية</button>
+  <button data-pg="pg-chat" onclick="go('pg-chat',this)"><span class="em">🤖</span>المحادثة</button>
+  <button data-pg="pg-tx" onclick="go('pg-tx',this)"><span class="em">📋</span>المعاملات</button>
+  <button data-pg="pg-people" onclick="go('pg-people',this)"><span class="em">👥</span>السلف</button>
+  <button data-pg="pg-set" onclick="go('pg-set',this)"><span class="em">⚙️</span>الإعدادات</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ Data ============ */
+const LS_TX='mohasebi_tx_v1', LS_KEY='mohasebi_gemini_key';
+let tx=[]; try{tx=JSON.parse(localStorage.getItem(LS_TX)||'[]')}catch(e){tx=[]}
+function save(){localStorage.setItem(LS_TX,JSON.stringify(tx))}
+const CATS={
+ 'أكل':['اكل','أكل','فطار','فطر','غدا','غداء','عشا','عشاء','مطعم','قهوة','عصير','سناك','حلويات','فراخ','لحمة','خضار','عيش'],
+ 'مواصلات':['مواصلات','اوبر','أوبر','كريم','ميكروباص','توك توك','توكتوك','مترو','بنزين','تاكسي','اتوبيس','أتوبيس','تذكرة'],
+ 'بيت':['ايجار','إيجار','كهربا','كهرباء','مية','مياه','غاز','نت','انترنت','إنترنت','شقة','سكن','فاتورة','فواتير'],
+ 'صحة':['دكتور','دوا','دواء','علاج','صيدلية','تحاليل','مستشفى','كشف'],
+ 'شغل':['شغل','مشروع','عميل','مرتب','راتب','فريلانس','حافز','عمولة'],
+ 'تسوق':['ملابس','هدوم','جزمة','موبايل','تليفون','ايفون','شاحن','سماعات','امازون','أمازون','جوميا'],
+ 'ترفيه':['لعبة','العاب','ألعاب','سينما','خروجة','رحلة','اشتراك','نتفليكس','يوتيوب','بلايستيشن'],
+ 'سلف':['سلف','سلفة','دين','دَين']};
+function catOf(text){
+  for(const [c,words] of Object.entries(CATS)){
+    if(words.some(w=>text.includes(w))) return c;
+  }
+  return 'أخرى';
+}
+const CAT_IC={'أكل':'🍔','مواصلات':'🚌','بيت':'🏠','صحة':'💊','شغل':'💼','تسوق':'🛍️','ترفيه':'🎮','سلف':'🤝','أخرى':'📌'};
+const AR_DIG={'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+function normDigits(s){return s.replace(/[٠-٩]/g,d=>AR_DIG[d])}
+
+/* ============ Parser ============ */
+function parseEntry(text){
+  const t=normDigits(text.trim());
+  const m=t.match(/(\d+(?:[.,]\d+)?)/);
+  const amount=m?parseFloat(m[1].replace(',','.')):null;
+  const lower=t;
+  const person=(()=>{ 
+    let p=t.match(/(?:سلفت|سلفة\s+ل|اديت|أديت|سلمت|سلمت\s+لـ?|لـ|ل)\s*([ء-ي]{2,}(?:\s+[ء-ي]{2,})?)/);
+    if(p) return p[1].replace(/^(لـ|ال)/,'').trim();
+    p=t.match(/(?:من|عند)\s+([ء-ي]{2,}(?:\s+[ء-ي]{2,})?)/);
+    if(p) return p[1].replace(/^(لـ|ال)/,'').trim();
+    return null;
+  })();
+  const isLoanRepay=/(رجع|رد|رجّع|سدد|قضا|قضى|رجعلي|رجعني)/.test(lower);
+  const isLent=/(سلفت|اديت.*سلفة|سلمت.*سلفة|اديته|سلفة ل)/.test(lower);
+  const isBorrowed=/(استلفت|اخدت سلفة|أخدت سلفة|خدت سلفة|اتسلفت)/.test(lower);
+  const isExpense=/(صرفت|صرف|دفعت|دفع|اشتريت|حاسبت|تكلفت|طلعت|اتكلف)/.test(lower);
+  const isIncome=/(قبضت|قبض|استلمت|خدت|اخدت|أخدت|مرتب|راتب|كسبت|مكسب|دخل|جالي|حول|حوالة|عمولة)/.test(lower);
+  let type=null;
+  if(isLoanRepay) type='repay';
+  else if(isLent) type='lent';
+  else if(isBorrowed) type='borrowed';
+  else if(isExpense) type='expense';
+  else if(isIncome) type='income';
+  return {amount,type,person,category:catOf(lower),raw:text.trim()};
+}
+function describeParsed(p){
+  if(!p.amount) return {err:'مش قادر ألاقي المبلغ. اكتب الرقم في الجملة، مثال: «صرفت 50 مواصلات».'};
+  if(!p.type) return {err:'مش فاهم نوع المعاملة. قول: صرفت / قبضت / سلفت / استلفت / رجعلي.'};
+  if((p.type==='lent'||p.type==='borrowed'||p.type==='repay')&&!p.person)
+    return {err:'مين الشخص؟ مثال: «سلفت أحمد 200» أو «أحمد رجعلي 100».'};
+  return {};
+}
+
+/* ============ Answers (offline brain) ============ */
+function sum(pred){return tx.filter(pred).reduce((a,b)=>a+b.amount,0)}
+const inMonth=(d)=>{const n=new Date();return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear()}
+function answerQuestion(q){
+  const t=normDigits(q);
+  const bal=sum(x=>x.type==='income')-sum(x=>x.type==='expense');
+  if(/رصيد|باقي|فاضل|معايا كام|كام معايا/.test(t)) return `رصيدك الحالي <b>${fmt(bal)} جنيه</b>. (دخل: ${fmt(sum(x=>x.type==='income'))} — مصروف: ${fmt(sum(x=>x.type==='expense'))})`;
+  if(/النهارده|النهاردة|اليوم/.test(t)){
+    const today=new Date().toDateString();
+    const out=sum(x=>x.type==='expense'&&new Date(x.date).toDateString()===today);
+    const inc=sum(x=>x.type==='income'&&new Date(x.date).toDateString()===today);
+    return `النهاردة صرفت <b>${fmt(out)} جنيه</b> وقبضت <b>${fmt(inc)} جنيه</b>.`;
+  }
+  if(/الشهر/.test(t)){
+    const out=sum(x=>x.type==='expense'&&inMonth(new Date(x.date)));
+    const inc=sum(x=>x.type==='income'&&inMonth(new Date(x.date)));
+    return `الشهر ده: دخل <b>${fmt(inc)}</b> ومصروف <b>${fmt(out)}</b> جنيه.`;
+  }
+  const pm=t.match(/([ء-ي]{2,}(?:\s+[ء-ي]{2,})?)\s*(ليه|عليه|مديون|داين)/)||t.match(/(?:حساب|مع)\s+([ء-ي]{2,})/);
+  if(pm){
+    const name=pm[1].trim();
+    const rel=tx.filter(x=>x.person&&x.person.includes(name));
+    if(!rel.length) return `مفيش معاملات مسجلة باسم «${name}».`;
+    const lentNet=rel.filter(x=>x.type==='lent').reduce((a,b)=>a+b.amount,0)-rel.filter(x=>x.type==='repay'&&x.direction==='to_me').reduce((a,b)=>a+b.amount,0);
+    const borNet=rel.filter(x=>x.type==='borrowed').reduce((a,b)=>a+b.amount,0)-rel.filter(x=>x.type==='repay'&&x.direction==='from_me').reduce((a,b)=>a+b.amount,0);
+    let s=`حساب <b>${name}</b>: `;
+    if(lentNet>0)s+=`له عندك <b style="color:var(--gold)">${fmt(lentNet)} جنيه</b>. `;
+    if(borNet>0)s+=`عليك له <b style="color:var(--red)">${fmt(borNet)} جنيه</b>. `;
+    if(lentNet<=0&&borNet<=0)s+='مفيش سلف مفتوحة بينكم. ';
+    s+=`(${rel.length} معاملة مسجلة)`;
+    return s;
+  }
+  if(/سلف|ديون/.test(t)){
+    return `سلف لي عند الناس: <b style="color:var(--gold)">${fmt(loansForMe())} جنيه</b> — وسلف عليا لازم أردها: <b style="color:var(--red)">${fmt(loansOnMe())} جنيه</b>.`;
+  }
+  return null;
+}
+
+/* ============ Loans math ============ */
+function loansForMe(){
+  const people={};
+  tx.forEach(x=>{
+    if(!x.person)return;
+    people[x.person]=people[x.person]||0;
+    if(x.type==='lent')people[x.person]+=x.amount;
+    if(x.type==='repay'&&x.direction==='to_me')people[x.person]-=x.amount;
+  });
+  return Object.values(people).filter(v=>v>0).reduce((a,b)=>a+b,0);
+}
+function loansOnMe(){
+  const people={};
+  tx.forEach(x=>{
+    if(!x.person)return;
+    people[x.person]=people[x.person]||0;
+    if(x.type==='borrowed')people[x.person]+=x.amount;
+    if(x.type==='repay'&&x.direction==='from_me')people[x.person]-=x.amount;
+  });
+  return Object.values(people).filter(v=>v>0).reduce((a,b)=>a+b,0);
+}
+
+/* ============ Render ============ */
+function fmt(n){return (Math.round(n*100)/100).toLocaleString('en-EG')}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity=1;setTimeout(()=>t.style.opacity=0,2200)}
+function typeLabel(x){
+  return {expense:'مصروف',income:'دخل',lent:'سلفة (له)',borrowed:'سلفة (علي)',repay:x=>x.direction==='to_me'?'رد سلفة (جتلي)':'رد سلفة (دفعتها)'}[x.type];
+}
+function renderAll(){
+  const bal=sum(x=>x.type==='income')-sum(x=>x.type==='expense');
+  document.getElementById('d-balance').innerHTML=fmt(bal)+' <small>جنيه</small>';
+  document.getElementById('d-balance').className='val '+(bal>=0?'green':'red');
+  document.getElementById('d-in').textContent=fmt(sum(x=>x.type==='income'&&inMonth(new Date(x.date))));
+  document.getElementById('d-out').textContent=fmt(sum(x=>x.type==='expense'&&inMonth(new Date(x.date))));
+  document.getElementById('d-lent').textContent=fmt(loansForMe());
+  document.getElementById('d-borrowed').textContent=fmt(loansOnMe());
+  renderTx('all','txList');
+  renderTx('all','recentList',5);
+  renderPeople();
+}
+function renderTx(f,elId,limit){
+  const el=document.getElementById(elId);
+  let list=tx.slice().reverse();
+  if(f!=='all')list=list.filter(x=>x.type===f||(f==='lent'&&x.type==='repay'&&x.direction==='to_me')||(f==='borrowed'&&x.type==='repay'&&x.direction==='from_me'));
+  if(limit)list=list.slice(0,limit);
+  if(elId==='recentList'&&list.length)el.innerHTML='<div class="hint" style="margin-bottom:8px"><b>آخر المعاملات</b></div>';
+  if(!list.length){el.innerHTML=(elId==='recentList')?'':'<div class="empty">مفيش معاملات هنا لسه</div>';return}
+  el.innerHTML=(elId==='recentList'?'<div class="hint" style="margin-bottom:8px"><b>آخر المعاملات</b></div>':'')+list.map(x=>{
+    const neg=(x.type==='expense'||x.type==='lent'||(x.type==='repay'&&x.direction==='from_me'));
+    const lbl=x.type==='repay'?(x.direction==='to_me'?'رد سلفة (جتلي)':'رد سلفة (دفعتها)'):({expense:'مصروف',income:'دخل',lent:'سلفة (له)',borrowed:'سلفة (عليا)'}[x.type]);
+    const name=x.person?(' · '+x.person):'';
+    return `<div class="tx">
+      <div class="ic">${CAT_IC[x.category]||'📌'}</div>
+      <div class="info"><div class="t1">${esc(x.note)}</div><div class="t2">${lbl}${name} · ${new Date(x.date).toLocaleDateString('ar-EG',{day:'numeric',month:'short'})}</div></div>
+      <div class="amt ${neg?'out':'in'}">${neg?'−':'+'}${fmt(x.amount)}</div>
+      <button class="del" onclick="delTx(${x.id})" title="مسح">🗑</div>
+    </div>`;
+  }).join('');
+}
+function renderPeople(){
+  const el=document.getElementById('peopleList');
+  const people={};
+  tx.forEach(x=>{
+    if(!x.person)return;
+    people[x.person]=people[x.person]||{lent:0,borrowed:0,count:0};
+    if(x.type==='lent')people[x.person].lent+=x.amount;
+    if(x.type==='borrowed')people[x.person].borrowed+=x.amount;
+    if(x.type==='repay'&&x.direction==='to_me')people[x.person].lent-=x.amount;
+    if(x.type==='repay'&&x.direction==='from_me')people[x.person].borrowed-=x.amount;
+    people[x.person].count++;
+  });
+  const names=Object.keys(people);
+  if(!names.length){el.innerHTML='<div class="empty">لسه مفيش سلف مع حد.<br>اكتب في المحادثة: «سلفت أحمد 200»</div>';return}
+  el.innerHTML=names.map(n=>{
+    const p=people[n];
+    let st='مفيش سلف مفتوحة';
+    if(p.lent>0)st=`له عندك ${fmt(p.lent)} جنيه`;
+    if(p.borrowed>0)st=`عليك له ${fmt(p.borrowed)} جنيه`;
+    return `<div class="person"><div class="av">${esc(n[0])}</div><div class="info"><div class="t1">${esc(n)}</div><div class="t2">${p.count} معاملة</div></div><div class="amt ${p.borrowed>0?'out':'in'}" style="font-size:13px">${st}</div></div>`;
+  }).join('');
+}
+function delTx(id){tx=tx.filter(x=>x.id!==id);save();renderAll();toast('اتمسحت')}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+/* ============ Chat ============ */
+let pending=null;
+function addMsg(cls,html){
+  const box=document.getElementById('chatBox');
+  const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;
+  box.appendChild(d);window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  return d;
+}
+function sendChat(){
+  const inp=document.getElementById('chatIn');
+  const v=inp.value.trim();if(!v)return;
+  inp.value='';addMsg('user',esc(v));
+  handleText(v);
+}
+document.getElementById('chatIn').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
+async function handleText(v){
+  // 1) question?
+  const ans=answerQuestion(v);
+  if(ans){addMsg('bot',ans);return}
+  // 2) transaction?
+  const p=parseEntry(v);
+  const e=describeParsed(p);
+  if(e.err){
+    const key=localStorage.getItem(LS_KEY);
+    if(key){addMsg('bot','ثانية واحدة، بسأل الذكاء الاصطناعي…');geminiHandle(v,key);return}
+    addMsg('bot',e.err+'<div class="mini">أو جرّب تسأل: «رصيدي كام»، «صرفت كام النهاردة»، «أحمد ليه كام»</div>');
+    return;
+  }
+  pending={p,note:v};
+  const kind={expense:'مصروف',income:'دخل',lent:'سلفة لـ',borrowed:'سلفة من',repay:'رد سلفة'}[p.type];
+  const d=addMsg('bot',`فهمت: <b>${kind}${p.person?esc(p.person):''} — ${fmt(p.amount)} جنيه</b> (${p.category})<div class="confirmRow"><button class="btn ok" onclick="confirmPending(true)">تأكيد</button><button class="btn no" onclick="confirmPending(false)">إلغاء</button></div>`);
+}
+function confirmPending(ok){
+  document.querySelectorAll('.confirmRow').forEach(r=>r.remove());
+  if(!pending)return;
+  if(!ok){addMsg('bot','تمام، ملغي. اكتبها تاني بالطريقة اللي تناسبك.');pending=null;return}
+  const {p,note}=pending;pending=null;
+  let type=p.type,direction=null;
+  if(type==='repay'){
+    direction=/(رجعلي|رجعني|ردلي|سددلي)/.test(normDigits(note))?'to_me':'from_me';
+  }
+  tx.push({id:Date.now(),type,direction,amount:p.amount,category:p.category,person:p.person,note,date:new Date().toISOString()});
+  save();renderAll();
+  const bal=sum(x=>x.type==='income')-sum(x=>x.type==='expense');
+  addMsg('bot',`اتسجلت ✅<div class="mini">رصيدك دلوقتي ${fmt(bal)} جنيه</div>`);
+  toast('اتسجلت المعاملة');
+}
+
+/* ============ Gemini (optional) ============ */
+async function geminiHandle(v,key){
+  try{
+    const ctx=tx.slice(-30).map(x=>`${x.type}:${x.amount}:${x.note}`).join('\n');
+    const prompt=`انت محاسب شخصي بتتكلم مصري. البيانات الحالية (آخر معاملات):\n${ctx||'لسه مفيش معاملات'}\n\nسؤال/رسالة المستخدم: "${v}"\n\nلو دي معاملة جديدة، رد بصيغة JSON بس: {"type":"expense|income|lent|borrowed","amount":رقم,"person":"اسم او null","note":"وصف قصير"}. لو سؤال، جاوب باختصار بالمصري.`;
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(key),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+    });
+    const j=await r.json();
+    let out=j?.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const jm=out.match(/\{[\s\S]*\}/);
+    if(jm){
+      try{
+        const o=JSON.parse(jm[0]);
+        if(o.amount&&o.type){pending={p:{amount:o.amount,type:o.type,person:o.person||null,category:'أخرى'},note:o.note||v};
+          addMsg('bot',`فهمت: <b>${o.type} — ${fmt(o.amount)} جنيه</b>${o.person?' ('+esc(o.person)+')':''}<div class="confirmRow"><button class="btn ok" onclick="confirmPending(true)">تأكيد</button><button class="btn no" onclick="confirmPending(false)">إلغاء</button></div>`);return}
+      }catch(_){}
+    }
+    addMsg('bot',esc(out).replace(/\n/g,'<br>')||'مش قادر أفهمها، جرّب صياغة تانية.');
+  }catch(err){addMsg('bot','حصلت مشكلة في الاتصال بـ Gemini. جرّب تاني أو امسح المفتاح من الإعدادات.')}
+}
+function saveKey(){const v=document.getElementById('gemKey').value.trim();if(!v)return;localStorage.setItem(LS_KEY,v);document.getElementById('gemKey').value='';toast('اتحفظ المفتاح')}
+function clearKey(){localStorage.removeItem(LS_KEY);toast('اتمسح المفتاح')}
+
+/* ============ Export / wipe ============ */
+function exportCSV(){
+  const rows=[['التاريخ','النوع','المبلغ','الفئة','الشخص','الوصف']];
+  tx.forEach(x=>rows.push([new Date(x.date).toLocaleDateString('ar-EG'),x.type,x.amount,x.category,x.person||'',x.note.replace(/,/g,' ')]));
+  const csv='\ufeff'+rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='mohasebi.csv';a.click();
+  toast('اتنزل الملف');
+}
+function wipeAll(){
+  if(confirm('متأكد؟ كل المعاملات هتتمسح نهائي.')){tx=[];save();renderAll();toast('اتمسحت كل البيانات')}
+}
+
+/* ============ Nav ============ */
+function go(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('inputBar').classList.toggle('show',id==='pg-chat');
+  window.scrollTo(0,0);
+}
+document.getElementById('txFilters').addEventListener('click',e=>{
+  if(!e.target.classList.contains('chip'))return;
+  document.querySelectorAll('#txFilters .chip').forEach(c=>c.classList.remove('on'));
+  e.target.classList.add('on');
+  renderTx(e.target.dataset.f,'txList');
+});
+
+/* ============ Init ============ */
+if(localStorage.getItem(LS_KEY))document.getElementById('gemKey').placeholder='مفتاح محفوظ ✅ (AIza...)';
+if(!tx.length){
+  addMsg('bot','أهلاً بيك في <b>محاسبي</b> 👋<br>اكتب معاملاتك زي ما بتتكلم، وأنا هسجلها وأحسبلك كل حاجة.<div class="mini">جرّب: «قبضت 5000 مرتب» أو «صرفت 60 أكل» أو «سلفت أحمد 200»</div>');
+}
+renderAll();
+</script>
+</body>
+</html>

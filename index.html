@@ -208,15 +208,18 @@ function parseEntry(text){
   const m=t.match(/(\d+(?:[.,]\d+)?)/);
   const amount=m?parseFloat(m[1].replace(',','.')):null;
   const lower=t;
-  const person=(()=>{ 
-    let p=t.match(/(?:سلفت|سلفة\s+ل|اديت|أديت|سلمت|سلمت\s+لـ?|لـ|ل)\s*([ء-ي]{2,}(?:\s+[ء-ي]{2,})?)/);
-    if(p) return p[1].replace(/^(لـ|ال)/,'').trim();
+  const cleanName=s=>s.replace(/^(لـ|ال)/,'').replace(/^ل(?=[ء-ي]{2})/,'').trim();
+  const person=(()=>{
+    let p=t.match(/(?:سلفت|سلفة\s+ل|اديت\s*ل?|أديت\s*ل?|سلمت\s*ل?)\s+([ء-ي]{2,}(?:\s+[ء-ي]{2,})?)/);
+    if(p) return cleanName(p[1]);
+    p=t.match(/^([ء-ي]{2,}(?:\s+[ء-ي]{2,})?)\s+(?:رجع|رد|سدد|قضا|قضى)/);
+    if(p) return cleanName(p[1]);
     p=t.match(/(?:من|عند)\s+([ء-ي]{2,}(?:\s+[ء-ي]{2,})?)/);
-    if(p) return p[1].replace(/^(لـ|ال)/,'').trim();
+    if(p) return cleanName(p[1]);
     return null;
   })();
   const isLoanRepay=/(رجع|رد|رجّع|سدد|قضا|قضى|رجعلي|رجعني)/.test(lower);
-  const isLent=/(سلفت|اديت.*سلفة|سلمت.*سلفة|اديته|سلفة ل)/.test(lower);
+  const isLent=/(سلفت|اديت.*سلفة|سلمت.*سلفة|سلمت\s*ل|اديته|سلفة ل)/.test(lower);
   const isBorrowed=/(استلفت|اخدت سلفة|أخدت سلفة|خدت سلفة|اتسلفت)/.test(lower);
   const isExpense=/(صرفت|صرف|دفعت|دفع|اشتريت|حاسبت|تكلفت|طلعت|اتكلف)/.test(lower);
   const isIncome=/(قبضت|قبض|استلمت|خدت|اخدت|أخدت|مرتب|راتب|كسبت|مكسب|دخل|جالي|حول|حوالة|عمولة)/.test(lower);
@@ -226,7 +229,8 @@ function parseEntry(text){
   else if(isBorrowed) type='borrowed';
   else if(isExpense) type='expense';
   else if(isIncome) type='income';
-  return {amount,type,person,category:catOf(lower),raw:text.trim()};
+  const loanTypes=(type==='lent'||type==='borrowed'||type==='repay');
+  return {amount,type,person:loanTypes?person:null,category:catOf(lower),raw:text.trim()};
 }
 function describeParsed(p){
   if(!p.amount) return {err:'مش قادر ألاقي المبلغ. اكتب الرقم في الجملة، مثال: «صرفت 50 مواصلات».'};
